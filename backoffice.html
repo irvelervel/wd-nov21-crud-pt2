@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css"
+      integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn"
+      crossorigin="anonymous"
+    />
+
+    <title>Backoffice - Admin Page</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <a class="navbar-brand" href="#">CRUD Project</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="./">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="./backoffice.html"
+              >Backoffice <span class="sr-only">(current)</span></a
+            >
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="d-flex flex-column align-items-center">
+      <h2 class="mt-4 text-center">Backoffice Form</h2>
+      <div
+        id="details-loading"
+        class="spinner-border text-success d-none"
+        role="status"
+      >
+        <span class="sr-only">Loading...</span>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="row justify-content-center mt-4">
+        <div class="col col-md-6">
+          <form onsubmit="createNewEvent(event)">
+            <div class="form-group">
+              <label for="name-input">Name of the event</label>
+              <input
+                type="text"
+                class="form-control"
+                id="name-input"
+                aria-describedby="name field"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="description-input">Description of the event</label>
+              <input
+                type="text"
+                class="form-control"
+                id="description-input"
+                aria-describedby="description field"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="price-input">Price of the event</label>
+              <input
+                type="number"
+                class="form-control"
+                id="price-input"
+                aria-describedby="price field"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="time-input">Time of the event</label>
+              <input
+                type="datetime-local"
+                class="form-control"
+                id="time-input"
+                aria-describedby="time field"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-primary"
+              id="submit-button"
+            ></button>
+          </form>
+        </div>
+      </div>
+      <button
+        class="btn btn-danger d-none"
+        id="delete-button"
+        onclick="deleteEvent()"
+      >
+        DELETE EVENT
+      </button>
+    </div>
+
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+      integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF"
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+      // first things first! I have to check if eventId is there or not
+      // this is going to tell me if the page has to be loaded in CREATION MODE
+      // or in EDIT MODE!
+      const eventId = new URLSearchParams(window.location.search).get('eventId')
+
+      const createNewEvent = async (event) => {
+        // we're going to fall here when we click the submit button! :)
+        // how do we send our event to the API for being generated on the db?
+        // remember: RESTful APIS are STATELESS. so this means we need to inform the APIs
+        // about our creation intentions, and we need to ATTACH to our request all the
+        // properties: name, description, price and time
+
+        // first, let's retrieve the data OUT of the form (because we need those properties
+        // for our request)
+
+        event.preventDefault()
+        // preventDefault() STOPS the embedded browser behavior
+        // put this for preventing the browser from refreshing!
+
+        const myNewEvent = {
+          name: document.getElementById('name-input').value,
+          // .value is the text content of the selected input field
+          description: document.getElementById('description-input').value,
+          price: document.getElementById('price-input').value,
+          time: document.getElementById('time-input').value,
+        }
+
+        console.log(myNewEvent)
+        // now this works! myNewEvent is an object containing all the properties for
+        // creating a new event
+
+        // the next step will be: SEND IT to the API!
+
+        // I'll use the async/await pattern
+
+        // I'll need once again to know if I'm coming from here from an existing event
+
+        try {
+          // the endpoint for POSTING data is the same we used for GETTING the data
+
+          // if I come here for UPDATING an event, some things need to change:
+          // 1) PUT method instead of POST
+          // 2) the URL needs the eventId at the end of it
+          // 3) prevent the flushing of the form
+          const response = await fetch(
+            eventId
+              ? 'https://striveschool-api.herokuapp.com/api/agenda/' + eventId
+              : 'https://striveschool-api.herokuapp.com/api/agenda/',
+            {
+              // configuration object goes here!
+              method: eventId ? 'PUT' : 'POST',
+              body: JSON.stringify(myNewEvent), // <-- we need to transform our event object
+              // into a string, because that's what is accepted from our APIs
+              headers: {
+                // headers are accessory information for you request
+                // they can pass custom attributes, they can hold an authorization permit
+                // Authorization: Bearer XXXXXXXXXXXXXXXXXX
+                // the Authorization header will be required for the homework
+                'Content-Type': 'application/json',
+              },
+              // 401 <-- Unauthorized
+            }
+          )
+          if (response.ok) {
+            // we successfully created a new event!! :D
+            alert(`EVENT ${eventId ? 'UPDATED' : 'CREATED'}!`)
+            if (!eventId) {
+              // it would be handy here if I could reset the form...
+              document.getElementById('name-input').value = ''
+              document.getElementById('description-input').value = ''
+              document.getElementById('price-input').value = ''
+              document.getElementById('time-input').value = ''
+            }
+          } else {
+            // something went wrong with your event... :(
+            alert('WE GOT A PROBLEM!, TRY AGAIN!')
+          }
+        } catch (error) {
+          console.log(error)
+        }
+      }
+
+      const fetchEventDetails = async () => {
+        // this is showing the spinner, which is hidden by default
+        toggleSpinner()
+        try {
+          // here I want to fetch the single event
+          let response = await fetch(
+            'https://striveschool-api.herokuapp.com/api/agenda/' + eventId
+          )
+          // the url will look something like: 'https://striveschool-api.herokuapp.com/api/agenda/62420be9d339840015c883b9'
+          // this is using a GET method, so I don't have to pass any config object
+          if (response.ok) {
+            let details = await response.json()
+            // congrats! you have successfully retrieved the details of a single event
+            // now it's time to fill the form with this details :)
+            document.getElementById('name-input').value = details.name
+            document.getElementById('description-input').value =
+              details.description
+            document.getElementById('price-input').value = details.price
+            document.getElementById('time-input').value =
+              details.time.split('.000Z')[0]
+            // we have to remove .000Z from the time property of the object
+            // got back from the API
+
+            // this is now re-hiding the spinner, which was active
+            toggleSpinner()
+          } else {
+            // our request got rejected
+            alert(
+              'something wrong happened fetching the details of the event :('
+            )
+            toggleSpinner()
+          }
+        } catch (error) {
+          console.log(error)
+          toggleSpinner()
+        }
+      }
+
+      const deleteEvent = async () => {
+        try {
+          let response = await fetch(
+            'https://striveschool-api.herokuapp.com/api/agenda/' + eventId,
+            {
+              method: 'DELETE',
+            }
+          )
+          if (response.ok) {
+            // I've successfully DELETED my element! :O
+            alert('deletion complete!')
+            window.location.assign('/index.html')
+            // this redirects me home!
+          } else {
+            alert('something went wrong in the deletion process...')
+          }
+        } catch (error) {
+          console.log(error)
+        }
+      }
+
+      const toggleSpinner = () => {
+        // let's target the spinner which is hidden by default
+        let spinnerElement = document.getElementById('details-loading')
+        // d-none hides the element: toggleSpinner should REMOVE it if present
+        // or ADD it if not present
+        spinnerElement.classList.toggle('d-none')
+      }
+
+      const toggleDeleteButton = () => {
+        let deleteButtonElement = document.getElementById('delete-button')
+        deleteButtonElement.classList.toggle('d-none')
+      }
+
+      const fillSubmitButtonLabel = () => {
+        let label = eventId ? 'UPDATE' : 'CREATE'
+        document.getElementById('submit-button').innerText = label
+      }
+
+      window.onload = () => {
+        console.log('EVENTID IS', eventId)
+        // eventId is going to tell us if we came here clicking on a link (UPDATE) or not (CREATE)
+        // now: if I have an eventId, I want to pre-fill the form with the existing data,
+        // so I can edit it and hopefully update the record
+        fillSubmitButtonLabel()
+        if (eventId) {
+          // here I should fetch the details of the particular event
+          // and fill the form with them
+          fetchEventDetails(eventId)
+          toggleDeleteButton()
+        }
+      }
+    </script>
+
+    <!-- Option 2: Separate Popper and Bootstrap JS -->
+    <!--
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" integrity="sha384-VHvPCCyXqtD5DqJeNxl2dtTyhF78xXNXdkwX1CZeRusQfRKp+tA7hAShOK/B/fQ2" crossorigin="anonymous"></script>
+    -->
+  </body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css"
+      integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn"
+      crossorigin="anonymous"
+    />
+
+    <title>CRUD AGENDA</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <a class="navbar-brand" href="#">CRUD Project</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="./"
+              >Home <span class="sr-only">(current)</span></a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./backoffice.html">Backoffice</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <h2 class="mt-4 text-center">Epicode CRUD Agenda</h2>
+
+    <div class="container">
+      <div class="row justify-content-center mt-4">
+        <div class="col col-md-6">
+          <ul class="list-group" id="events-container"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+      integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF"
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+      // "https://striveschool-api.herokuapp.com/api/agenda/"
+      // this is an endpoint we're going to contact for several CRUD operations
+      // right now I want to RETRIEVE a list of events out of it
+      // this endpoint has been created following the RESTful architecture
+
+      // GET <- this is useful for RETRIEVING DATA (R)
+      // POST <- this is used for CREATING new resources (C)
+      // PUT <- this is used for UPDATING existing resources (U)
+      // DELETE <- this is the method used for deleting a resource (D)
+
+      // how can we deal with ASYNC operations?
+      // all async ops: you know when they start, you DON'T know when they end :(
+      // Promise: an operation that eventually will succeed/fail
+      // most modern ways for dealing with Promises:
+      // a) chained .then() method
+      // b) async/await pattern
+
+      // a)
+      //   const getData = () => {
+      //     fetch('https://striveschool-api.herokuapp.com/api/agenda/')
+      //       .then((response) => {
+      //         // response now is the finalized result of the Promise!
+      //         console.log(response)
+      //         return response.json()
+      //         // json() is a method capable of extracting the body of a Response,
+      //         // where the data is, and return it to you
+      //       })
+      //       .then((events) => {
+      //         console.log(events)
+      //         // now we can deal with the events we grabbed from the API! :)
+      //       })
+      //       .catch((error) => {
+      //         console.log(error)
+      //       })
+      //   }
+
+      // b)
+      const getData = async () => {
+        try {
+          let response = await fetch(
+            'https://striveschool-api.herokuapp.com/api/agenda/'
+          )
+          // we can use the await keyword because our getData function was declared as async
+          console.log(response)
+          if (response.ok) {
+            let events = await response.json()
+            console.log(events)
+            // here I have the events to work with
+            return events
+          } else {
+            // you'll fall here if the endpoint was incorrect, or if the server had a problem
+            console.log('something went wrong on the server')
+          }
+        } catch (e) {
+          // we have to catch errors manually using async/await
+          // that's commonly done with an try/catch block
+          console.log(e)
+          // you'll most likely fall here if you have some sort of network problem
+        }
+      }
+
+      const populateList = (events) => {
+        let list = document.getElementById('events-container') // <-- this is the <ul>
+        events.forEach((event) => {
+          // for every event I'll need to:
+          // 1) create an empty li
+          // 2) assign to this li the bootstrap classes for creating a list item
+          // 3) assign the content of the list item (the title of the event, the price etc.)
+          // 4) append this <li> child to the <ul> parent
+
+          // 1)
+          const listItem = document.createElement('li')
+          // 2)
+          listItem.className = 'list-group-item'
+          // 3)
+          // let me attach a query parameter to the backoffice url
+          // it starts with the '?' char and then you assign your parameter
+          listItem.innerHTML = `<span><a href="./backoffice.html?eventId=${event._id}">${event.name}</a></span>`
+          // 4)
+          list.appendChild(listItem)
+        })
+      }
+
+      window.onload = async () => {
+        let events = await getData()
+        console.log("I'm in the onload block", events)
+        populateList(events)
+      }
+    </script>
+
+    <!-- Option 2: Separate Popper and Bootstrap JS -->
+    <!--
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" integrity="sha384-VHvPCCyXqtD5DqJeNxl2dtTyhF78xXNXdkwX1CZeRusQfRKp+tA7hAShOK/B/fQ2" crossorigin="anonymous"></script>
+    -->
+  </body>
+</html>
